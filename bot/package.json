@@ -1,0 +1,26 @@
+{
+  "name": "vertex-bot",
+  "version": "1.0.0",
+  "description": "Vertex Solana arbitrage trading bot",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:arbitrage": "node dist/arbitrage.js",
+    "dev": "ts-node src/index.ts",
+    "test-swap": "ts-node src/test-swap.ts",
+    "arbitrage": "ts-node src/arbitrage.ts",
+    "arbitrage:scan": "ts-node src/arbitrage.ts --scan"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0",
+    "@supabase/supabase-js": "^2.95.3",
+    "bs58": "^5.0.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
