@@ -90,7 +90,7 @@ Run the `sudo env PATH=...` command that `pm2 startup` prints.
 pm2 status
 pm2 logs vertex-arbitrage
 ```
-You should see "Scanning for opportunities..."
+You should see "Scanning for opportunities..." and "[deposit-watcher] Started" (deposit watcher runs in the same process).
 
 ---
 

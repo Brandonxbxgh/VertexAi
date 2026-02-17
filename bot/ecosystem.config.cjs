@@ -1,5 +1,6 @@
 /**
- * PM2 config for Vertex bot - keeps arbitrage running 24/7
+ * PM2 config for Vertex bot - keeps arbitrage + deposit watcher running 24/7
+ * One process runs both (arbitrage + deposit attribution).
  * Usage: pm2 start ecosystem.config.cjs
  */
 

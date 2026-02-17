@@ -221,10 +221,16 @@ export async function executeTriangleArbitrage(
 
 /**
  * Run the arbitrage loop: poll all paths, execute only when strict filters pass.
+ * Also starts the deposit watcher in parallel (attributes incoming SOL to users).
  */
 export async function runArbitrageLoop(): Promise<void> {
   const { validateJupiterConfig } = await import("./config");
   validateJupiterConfig();
+
+  // Start deposit watcher in parallel (no-op if Supabase not configured)
+  import("./deposit-watcher").then(({ runDepositWatcherLoop }) => {
+    runDepositWatcherLoop().catch((err) => console.error("[deposit-watcher]", err));
+  });
 
   const wallet = getWallet();
   const connection = new Connection(config.solana.rpcUrl);
