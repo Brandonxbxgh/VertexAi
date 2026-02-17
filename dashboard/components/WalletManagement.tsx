@@ -138,6 +138,10 @@ export function WalletManagement() {
     fetchProfile();
   }
 
+  const addWalletError = addWallet.trim() ? getSolanaAddressError(addWallet.trim()) : null;
+  const withdrawalWalletError =
+    withdrawalWallet.trim() ? getSolanaAddressError(withdrawalWallet.trim()) : null;
+
   if (!supabase) return null;
   if (loading) {
     return (
@@ -178,17 +182,27 @@ export function WalletManagement() {
               type="text"
               placeholder="Solana address (e.g. 7xKX...)"
               value={addWallet}
-              onChange={(e) => setAddWallet(e.target.value)}
-              className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2 text-sm placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              onChange={(e) => {
+                setAddWallet(e.target.value);
+                setMessage(null);
+              }}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm placeholder-zinc-500 focus:outline-none focus:ring-1 ${
+                addWalletError
+                  ? "border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-red-500"
+                  : "border-zinc-700 bg-zinc-800/50 focus:border-emerald-500 focus:ring-emerald-500"
+              }`}
             />
             <button
               onClick={handleAddDepositWallet}
-              disabled={!addWallet.trim() || actionLoading !== null}
+              disabled={!addWallet.trim() || !!addWalletError || actionLoading !== null}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
             >
               {actionLoading === "add" ? "Adding..." : "Add"}
             </button>
           </div>
+          {addWalletError && (
+            <p className="mt-2 text-sm text-red-400">{addWalletError}</p>
+          )}
           {profile && profile.deposit_wallets.length > 0 && (
             <ul className="mt-3 space-y-2">
               {profile.deposit_wallets.map((w) => (
@@ -218,17 +232,27 @@ export function WalletManagement() {
               type="text"
               placeholder="Solana address for payouts"
               value={withdrawalWallet}
-              onChange={(e) => setWithdrawalWallet(e.target.value)}
-              className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2 text-sm placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              onChange={(e) => {
+                setWithdrawalWallet(e.target.value);
+                setMessage(null);
+              }}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm placeholder-zinc-500 focus:outline-none focus:ring-1 ${
+                withdrawalWalletError
+                  ? "border-red-500/50 bg-red-500/5 focus:border-red-500 focus:ring-red-500"
+                  : "border-zinc-700 bg-zinc-800/50 focus:border-emerald-500 focus:ring-emerald-500"
+              }`}
             />
             <button
               onClick={handleSetWithdrawalWallet}
-              disabled={!withdrawalWallet.trim() || actionLoading !== null}
+              disabled={!withdrawalWallet.trim() || !!withdrawalWalletError || actionLoading !== null}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
             >
               {actionLoading === "withdrawal" ? "Saving..." : "Save"}
             </button>
           </div>
+          {withdrawalWalletError && (
+            <p className="mt-2 text-sm text-red-400">{withdrawalWalletError}</p>
+          )}
         </div>
       </div>
     </section>
