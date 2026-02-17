@@ -131,6 +131,13 @@ user_profit_share = total_pool_profit × user_share
 - User must have `withdrawal_wallet` set
 - Balance must be positive
 
+### 4.3 Payout currency (SOL vs stable)
+
+- **Default:** SOL (simpler, no swap, no extra RPC/Jupiter calls)
+- **Optional:** USDC (adds swap step, uses Jupiter; users who prefer stable value)
+- **Config:** Add `payout_currency` to user_profiles or settings (`sol` | `usdc`)
+- For now: implement SOL payouts first; add USDC as option later if needed
+
 ---
 
 ## Phase 5: Dashboard UI

@@ -1,8 +1,12 @@
 "use client";
 
+import { WalletManagement } from "./WalletManagement";
+
 export function SettingsPanel() {
   return (
     <div className="space-y-6">
+      <WalletManagement />
+
       <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h2 className="font-semibold">Bot configuration</h2>
         <p className="mt-1 text-sm text-zinc-500">
