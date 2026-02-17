@@ -1,14 +1,11 @@
 /**
- * Solana address validation (Base58, 32-44 chars).
- * Rejects Ethereum (0x), invalid length, invalid characters.
+ * Solana address validation.
+ * A valid address is Base58-encoded and decodes to exactly 32 bytes.
  */
-const SOLANA_ADDRESS_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+import bs58 from "bs58";
 
 export function isValidSolanaAddress(address: string): boolean {
-  const trimmed = address.trim();
-  if (trimmed.length === 0) return false;
-  if (trimmed.startsWith("0x")) return false; // Ethereum
-  return SOLANA_ADDRESS_REGEX.test(trimmed);
+  return getSolanaAddressError(address) === null;
 }
 
 export function getSolanaAddressError(address: string): string | null {
@@ -17,6 +14,15 @@ export function getSolanaAddressError(address: string): string | null {
   if (trimmed.startsWith("0x")) return "Ethereum addresses (0x...) are not supported. Use a Solana address.";
   if (trimmed.length < 32) return "Address is too short. Solana addresses are 32-44 characters.";
   if (trimmed.length > 44) return "Address is too long. Solana addresses are 32-44 characters.";
-  if (!SOLANA_ADDRESS_REGEX.test(trimmed)) return "Invalid format. Solana addresses use Base58 (no 0, O, I, l).";
+
+  try {
+    const decoded = bs58.decode(trimmed);
+    if (decoded.length !== 32) {
+      return "Invalid address. Must decode to 32 bytes (invalid Base58 or wrong length).";
+    }
+  } catch {
+    return "Invalid Solana address. Not valid Base58 format.";
+  }
+
   return null;
 }
