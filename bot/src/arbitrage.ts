@@ -8,6 +8,7 @@ import { config } from "./config";
 import { getWallet } from "./wallet";
 import { MINT, getQuote, executeSwap, JupiterQuote } from "./jupiter";
 import { logActivity, logTrade } from "./supabase";
+import { sendTelegramAlert } from "./telegram";
 
 const LAMPORTS_PER_SOL = 1e9;
 
@@ -17,8 +18,9 @@ export type TrianglePath = {
   legs: [[string, string], [string, string], [string, string]]; // [from, to] per leg
 };
 
-/** All triangle paths we scan (SOL/USDC/USDT - stable, liquid) */
+/** All triangle paths we scan */
 const TRIANGLE_PATHS: TrianglePath[] = [
+  // Stables (SOL/USDC/USDT)
   {
     name: "SOL→USDC→USDT→SOL",
     legs: [
@@ -32,6 +34,40 @@ const TRIANGLE_PATHS: TrianglePath[] = [
     legs: [
       [MINT.SOL, MINT.USDT],
       [MINT.USDT, MINT.USDC],
+      [MINT.USDC, MINT.SOL],
+    ],
+  },
+  // SOL/USDC/BONK
+  {
+    name: "SOL→USDC→BONK→SOL",
+    legs: [
+      [MINT.SOL, MINT.USDC],
+      [MINT.USDC, MINT.BONK],
+      [MINT.BONK, MINT.SOL],
+    ],
+  },
+  {
+    name: "SOL→BONK→USDC→SOL",
+    legs: [
+      [MINT.SOL, MINT.BONK],
+      [MINT.BONK, MINT.USDC],
+      [MINT.USDC, MINT.SOL],
+    ],
+  },
+  // SOL/USDC/JUP
+  {
+    name: "SOL→USDC→JUP→SOL",
+    legs: [
+      [MINT.SOL, MINT.USDC],
+      [MINT.USDC, MINT.JUP],
+      [MINT.JUP, MINT.SOL],
+    ],
+  },
+  {
+    name: "SOL→JUP→USDC→SOL",
+    legs: [
+      [MINT.SOL, MINT.JUP],
+      [MINT.JUP, MINT.USDC],
       [MINT.USDC, MINT.SOL],
     ],
   },
@@ -157,6 +193,15 @@ export async function executeTriangleArbitrage(
     signatures.push(sig);
     console.log(`  Tx: https://solscan.io/tx/${sig}`);
     await logActivity("trade_complete", `Leg ${i + 1}: ${leg}`, undefined, sig);
+    if (i === 2) {
+      const profitSol = (opportunity.profitLamports / LAMPORTS_PER_SOL).toFixed(6);
+      await sendTelegramAlert(
+        `✅ <b>Vertex Trade</b>\n` +
+          `Path: ${opportunity.pathName}\n` +
+          `Profit: ${profitSol} SOL (${opportunity.profitBps} bps)\n` +
+          `Tx: https://solscan.io/tx/${sig}`
+      );
+    }
     await logTrade({
       txSignature: sig,
       inputMint: q.inputMint,

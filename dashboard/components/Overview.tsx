@@ -3,10 +3,29 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.toISOString();
+}
+
+function startOfWeek(d: Date) {
+  const x = new Date(d);
+  const day = x.getDay();
+  const diff = x.getDate() - day + (day === 0 ? -6 : 1);
+  x.setDate(diff);
+  x.setHours(0, 0, 0, 0);
+  return x.toISOString();
+}
+
 export function Overview() {
   const [stats, setStats] = useState({
     todayTrades: 0,
     todayPnl: 0,
+    weekTrades: 0,
+    weekPnl: 0,
+    totalTrades: 0,
+    totalPnl: 0,
     lastActivity: null as string | null,
   });
   const client = createClient();
@@ -14,13 +33,30 @@ export function Overview() {
   useEffect(() => {
     if (!client) return;
     async function load(c: NonNullable<typeof client>) {
-      const { data: trades } = await c
+      const now = new Date();
+      const todayStart = startOfDay(now);
+      const weekStart = startOfWeek(now);
+
+      const { data: todayTrades } = await c
         .from("trades")
-        .select("profit_usd, created_at")
-        .gte("created_at", new Date().toISOString().split("T")[0])
+        .select("profit_usd")
+        .gte("created_at", todayStart)
         .eq("status", "success");
 
-      const todayPnl = trades?.reduce((s, t) => s + (t.profit_usd || 0), 0) ?? 0;
+      const { data: weekTrades } = await c
+        .from("trades")
+        .select("profit_usd")
+        .gte("created_at", weekStart)
+        .eq("status", "success");
+
+      const { data: allTrades } = await c
+        .from("trades")
+        .select("profit_usd")
+        .eq("status", "success");
+
+      const todayPnl = todayTrades?.reduce((s, t) => s + (t.profit_usd || 0), 0) ?? 0;
+      const weekPnl = weekTrades?.reduce((s, t) => s + (t.profit_usd || 0), 0) ?? 0;
+      const totalPnl = allTrades?.reduce((s, t) => s + (t.profit_usd || 0), 0) ?? 0;
 
       const { data: lastActivity } = await c
         .from("activity_log")
@@ -30,8 +66,12 @@ export function Overview() {
         .single();
 
       setStats({
-        todayTrades: trades?.length ?? 0,
+        todayTrades: todayTrades?.length ?? 0,
         todayPnl,
+        weekTrades: weekTrades?.length ?? 0,
+        weekPnl,
+        totalTrades: allTrades?.length ?? 0,
+        totalPnl,
         lastActivity: lastActivity?.created_at ?? null,
       });
     }
@@ -50,27 +90,39 @@ export function Overview() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <Card
-        title="Today's Trades"
-        value={stats.todayTrades}
-        subtitle="executions"
-      />
-      <Card
-        title="Today's P&L"
-        value={`$${stats.todayPnl.toFixed(2)}`}
-        subtitle={stats.todayPnl >= 0 ? "profit" : "loss"}
-        positive={stats.todayPnl >= 0}
-      />
-      <Card
-        title="Last Activity"
-        value={
-          stats.lastActivity
-            ? new Date(stats.lastActivity).toLocaleTimeString()
-            : "—"
-        }
-        subtitle="bot heartbeat"
-      />
+    <div className="space-y-6">
+      <div>
+        <h2 className="mb-3 text-sm font-medium text-zinc-500">P&L Summary</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card
+            title="Total P&L"
+            value={`$${stats.totalPnl.toFixed(2)}`}
+            subtitle={`${stats.totalTrades} trades all-time`}
+            positive={stats.totalPnl >= 0}
+          />
+          <Card
+            title="This Week"
+            value={`$${stats.weekPnl.toFixed(2)}`}
+            subtitle={`${stats.weekTrades} trades`}
+            positive={stats.weekPnl >= 0}
+          />
+          <Card
+            title="Today"
+            value={`$${stats.todayPnl.toFixed(2)}`}
+            subtitle={`${stats.todayTrades} trades`}
+            positive={stats.todayPnl >= 0}
+          />
+          <Card
+            title="Last Activity"
+            value={
+              stats.lastActivity
+                ? new Date(stats.lastActivity).toLocaleTimeString()
+                : "—"
+            }
+            subtitle="bot heartbeat"
+          />
+        </div>
+      </div>
     </div>
   );
 }
