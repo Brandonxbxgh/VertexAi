@@ -1,3 +1,4 @@
+import { BalanceCard } from "@/components/BalanceCard";
 import { LiveActivity } from "@/components/LiveActivity";
 import { Overview } from "@/components/Overview";
 import { RecentTrades } from "@/components/RecentTrades";
@@ -10,7 +11,10 @@ export default function DashboardPage() {
         <p className="text-sm text-zinc-500">Bot status and recent activity</p>
       </header>
       <div className="mx-auto max-w-6xl px-8 py-8">
-        <Overview />
+        <BalanceCard />
+        <div className="mt-8">
+          <Overview />
+        </div>
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
           <LiveActivity />
           <RecentTrades />

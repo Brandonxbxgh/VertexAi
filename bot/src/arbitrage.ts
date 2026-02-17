@@ -232,6 +232,11 @@ export async function runArbitrageLoop(): Promise<void> {
     runDepositWatcherLoop().catch((err) => console.error("[deposit-watcher]", err));
   });
 
+  // Start payout processor in parallel
+  import("./payout-processor").then(({ runPayoutProcessorLoop }) => {
+    runPayoutProcessorLoop().catch((err) => console.error("[payout-processor]", err));
+  });
+
   const wallet = getWallet();
   const connection = new Connection(config.solana.rpcUrl);
   const { pollIntervalMs, tradeSizeLamports } = config.arbitrage;
