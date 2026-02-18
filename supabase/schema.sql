@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS trades (
   output_mint TEXT NOT NULL,
   input_amount TEXT NOT NULL,
   output_amount TEXT NOT NULL,
+  profit_sol DECIMAL(20, 9),
   profit_usd DECIMAL(20, 8),
   profit_pct DECIMAL(10, 4),
   strategy TEXT DEFAULT 'triangular_arb',
