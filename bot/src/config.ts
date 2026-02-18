@@ -2,8 +2,8 @@ import "dotenv/config";
 
 const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 // Log RPC on startup (key redacted) to verify .env is loaded
-const rpcDisplay = rpcUrl.includes("api_key=")
-  ? rpcUrl.replace(/api_key=[^&]+/, "api_key=***")
+const rpcDisplay = rpcUrl.includes("api-key=") || rpcUrl.includes("api_key=")
+  ? rpcUrl.replace(/(api-key|api_key)=[^&]+/, "$1=***")
   : rpcUrl;
 if (process.env.NODE_ENV === "production") {
   console.log("[config] SOLANA_RPC_URL:", rpcDisplay);

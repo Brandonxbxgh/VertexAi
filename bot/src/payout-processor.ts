@@ -38,8 +38,8 @@ async function processPayouts(): Promise<void> {
   if (!pending?.length) return;
 
   const poolBalance = await connection.getBalance(new PublicKey(poolAddress));
-  const availableLamports = Math.max(0, poolBalance - GAS_RESERVE_LAMPORTS);
-  const availableSol = availableLamports / 1e9;
+  let availableLamports = Math.max(0, poolBalance - GAS_RESERVE_LAMPORTS);
+  let availableSol = availableLamports / 1e9;
 
   if (availableSol < MIN_PAYOUT_SOL) return;
 
@@ -164,6 +164,7 @@ async function processPayouts(): Promise<void> {
       }
 
       availableLamports -= lamports;
+      availableSol = availableLamports / 1e9;
       console.log(`[payout] Sent ${claimSol.toFixed(4)} SOL (${payoutType}) to ${dest.slice(0, 8)}...`);
     } catch (err) {
       console.error("[payout] Error:", err);
