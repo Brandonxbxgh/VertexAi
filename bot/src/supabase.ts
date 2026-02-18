@@ -50,6 +50,7 @@ export async function logTrade(params: {
   outputMint: string;
   inputAmount: string;
   outputAmount: string;
+  profitSol?: number;
   profitUsd?: number;
   profitPct?: number;
   strategy?: string;
@@ -65,6 +66,7 @@ export async function logTrade(params: {
       output_mint: params.outputMint,
       input_amount: params.inputAmount,
       output_amount: params.outputAmount,
+      profit_sol: params.profitSol ?? null,
       profit_usd: params.profitUsd ?? null,
       profit_pct: params.profitPct ?? null,
       strategy: params.strategy ?? "triangular_arb",
@@ -73,5 +75,18 @@ export async function logTrade(params: {
     });
   } catch (err) {
     console.error("Supabase trade log error:", err);
+  }
+}
+
+/** Get total reserve (profit earned - withdrawn) across all users. Used for tradable calc. */
+export async function getReserveTotal(): Promise<number> {
+  const c = getClient();
+  if (!c) return 0;
+  try {
+    const { data, error } = await c.rpc("get_reserve_total");
+    if (error) return 0;
+    return Number(data ?? 0);
+  } catch {
+    return 0;
   }
 }

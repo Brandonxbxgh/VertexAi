@@ -12,8 +12,12 @@ export const config = {
     slippageBps: 50, // 0.5%
   },
   arbitrage: {
-    // Trade size: 0.01 SOL per cycle (1e7 lamports)
+    // Trade size: dynamic from tradable (pool - reserve), or fixed fallback
     tradeSizeLamports: Number(process.env.TRADE_SIZE_LAMPORTS) || 10_000_000,
+    // Dynamic: clamp(tradable * pct, min, max) SOL
+    tradeSizePct: Number(process.env.TRADE_SIZE_PCT) || 0.005,
+    tradeSizeMinSol: Number(process.env.TRADE_SIZE_MIN_SOL) || 0.01,
+    tradeSizeMaxSol: Number(process.env.TRADE_SIZE_MAX_SOL) || 0.5,
     // Min profit in basis points (70 = 0.7%) - relaxed for more opportunities
     minProfitBps: Number(process.env.MIN_PROFIT_BPS) || 70,
     // Extra buffer required before execution (15 = 0.15%)

@@ -3,11 +3,11 @@
  * Only executes when profit is clear and all safety checks pass.
  */
 
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { config } from "./config";
-import { getWallet } from "./wallet";
+import { getWallet, getPublicKey } from "./wallet";
 import { MINT, getQuote, executeSwap, JupiterQuote } from "./jupiter";
-import { logActivity, logTrade } from "./supabase";
+import { logActivity, logTrade, getReserveTotal } from "./supabase";
 import { sendTelegramAlert } from "./telegram";
 
 const LAMPORTS_PER_SOL = 1e9;
@@ -136,10 +136,36 @@ async function checkPath(
 }
 
 /**
+ * Get trade size in lamports: clamp(tradable * pct, min, max).
+ * Tradable = pool_balance - reserve (profit not yet withdrawn).
+ */
+async function getTradeSizeLamports(connection: Connection): Promise<number> {
+  const { tradeSizeLamports, tradeSizePct, tradeSizeMinSol, tradeSizeMaxSol } = config.arbitrage;
+  const poolAddress = process.env.POOL_WALLET || getPublicKey();
+  try {
+    const [poolBalance, reserveSol] = await Promise.all([
+      connection.getBalance(new PublicKey(poolAddress)),
+      getReserveTotal(),
+    ]);
+    const poolSol = poolBalance / LAMPORTS_PER_SOL;
+    const tradable = Math.max(0, poolSol - reserveSol);
+    const sizeSol = Math.max(
+      tradeSizeMinSol,
+      Math.min(tradeSizeMaxSol, tradable * tradeSizePct)
+    );
+    return Math.floor(sizeSol * LAMPORTS_PER_SOL);
+  } catch {
+    return tradeSizeLamports;
+  }
+}
+
+/**
  * Scan all paths and return the best opportunity (if any).
  */
-export async function checkAllTriangles(): Promise<ArbitrageOpportunity | null> {
-  const { tradeSizeLamports } = config.arbitrage;
+export async function checkAllTriangles(
+  connection: Connection
+): Promise<ArbitrageOpportunity | null> {
+  const tradeSizeLamports = await getTradeSizeLamports(connection);
   let best: ArbitrageOpportunity | null = null;
 
   for (const path of TRIANGLE_PATHS) {
@@ -208,6 +234,7 @@ export async function executeTriangleArbitrage(
       outputMint: q.outputMint,
       inputAmount: q.inAmount,
       outputAmount: q.outAmount,
+      profitSol: i === 2 ? opportunity.profitLamports / LAMPORTS_PER_SOL : undefined,
       profitUsd: i === 2 ? (opportunity.profitLamports / LAMPORTS_PER_SOL) * 200 : undefined, // rough USD
       profitPct: i === 2 ? (opportunity.profitBps / 100) : undefined,
       strategy: "triangular_arb",
@@ -237,6 +264,11 @@ export async function runArbitrageLoop(): Promise<void> {
     runPayoutProcessorLoop().catch((err) => console.error("[payout-processor]", err));
   });
 
+  // Start profit crediter in parallel (daily 90/10 split)
+  import("./profit-crediter").then(({ runProfitCrediterLoop }) => {
+    runProfitCrediterLoop().catch((err) => console.error("[profit-crediter]", err));
+  });
+
   const wallet = getWallet();
   const connection = new Connection(config.solana.rpcUrl);
   const { pollIntervalMs, tradeSizeLamports } = config.arbitrage;
@@ -253,7 +285,7 @@ export async function runArbitrageLoop(): Promise<void> {
   while (true) {
     cycleCount++;
     try {
-      const opp = await checkAllTriangles();
+      const opp = await checkAllTriangles(connection);
       if (opp) {
         console.log(`[${new Date().toISOString()}] Opportunity: ${opp.pathName}`);
         console.log(
@@ -304,7 +336,8 @@ async function scanOnce(): Promise<void> {
 
   console.log("Vertex Bot - Arbitrage Scan (strict, all paths)\n");
 
-  const opp = await checkAllTriangles();
+  const connection = new Connection(config.solana.rpcUrl);
+  const opp = await checkAllTriangles(connection);
   if (opp) {
     console.log("Opportunity found:", opp.pathName);
     console.log("  Input:", opp.inputLamports / LAMPORTS_PER_SOL, "SOL");

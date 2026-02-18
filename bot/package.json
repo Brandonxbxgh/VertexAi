@@ -11,7 +11,8 @@
     "test-swap": "ts-node src/test-swap.ts",
     "arbitrage": "ts-node src/arbitrage.ts",
     "arbitrage:scan": "ts-node src/arbitrage.ts --scan",
-    "deposit-watcher": "ts-node src/deposit-watcher.ts"
+    "deposit-watcher": "ts-node src/deposit-watcher.ts",
+    "test-telegram": "ts-node src/test-telegram.ts"
   },
   "dependencies": {
     "@solana/web3.js": "^1.95.0",

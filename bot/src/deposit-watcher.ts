@@ -121,12 +121,15 @@ async function processTransaction(
         continue;
       }
       try {
+        const lockUntil = new Date();
+        lockUntil.setDate(lockUntil.getDate() + 90);
         await supabase.from("deposits").insert({
           user_id: userId,
           amount: t.amount,
           mint: t.mint,
           source_wallet: t.source,
           tx_signature: signature,
+          lock_until: lockUntil.toISOString(),
         });
         console.log(`[deposit-watcher] Credited ${t.amount} ${t.mint} to user from ${t.source}`);
       } catch (err: unknown) {
