@@ -15,9 +15,10 @@ export default function ReferralsPage() {
   const client = createClient();
 
   useEffect(() => {
-    if (!client) return;
+    const c = client;
+    if (!c) return;
     async function load() {
-      const { data: refData } = await client.rpc("get_my_referrals");
+      const { data: refData } = await c.rpc("get_my_referrals");
       const result = refData as {
         ok?: boolean;
         referral_code?: string;
@@ -34,7 +35,7 @@ export default function ReferralsPage() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [client]);
 
   if (!client) {
     return (
