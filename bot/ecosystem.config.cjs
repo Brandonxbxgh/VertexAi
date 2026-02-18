@@ -10,6 +10,7 @@ module.exports = {
       name: "vertex-arbitrage",
       script: "dist/arbitrage.js",
       cwd: __dirname,
+      node_args: "-r dotenv/config",
       instances: 1,
       autorestart: true,
       watch: false,

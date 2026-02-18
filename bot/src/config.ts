@@ -1,9 +1,18 @@
 import "dotenv/config";
 
+const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+// Log RPC on startup (key redacted) to verify .env is loaded
+const rpcDisplay = rpcUrl.includes("api_key=")
+  ? rpcUrl.replace(/api_key=[^&]+/, "api_key=***")
+  : rpcUrl;
+if (process.env.NODE_ENV === "production") {
+  console.log("[config] SOLANA_RPC_URL:", rpcDisplay);
+}
+
 export const config = {
   solana: {
     privateKey: process.env.SOLANA_PRIVATE_KEY!,
-    rpcUrl: process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
+    rpcUrl,
   },
   jupiter: {
     apiKey: process.env.JUPITER_API_KEY || "",
