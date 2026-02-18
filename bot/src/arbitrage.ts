@@ -119,7 +119,7 @@ async function checkPath(
   const profitLamports = outputLamports - inputLamports - feeBuffer;
   const profitBps = Math.floor((profitLamports / inputLamports) * 10_000);
 
-  // Strict: must exceed min profit AND safety buffer (for execution delay)
+  // Must exceed min profit + safety buffer (for execution delay)
   const requiredBps = minProfitBps + safetyBufferBps;
   if (profitLamports <= 0 || profitBps < requiredBps) {
     return null;
@@ -273,11 +273,15 @@ export async function runArbitrageLoop(): Promise<void> {
   const connection = new Connection(config.solana.rpcUrl);
   const { pollIntervalMs, tradeSizeLamports } = config.arbitrage;
 
-  console.log("Vertex Bot - Triangular Arbitrage (Strict Mode)\n");
+  const { minProfitBps, safetyBufferBps, reQuoteBeforeExecute } = config.arbitrage;
+  const requiredBps = minProfitBps + safetyBufferBps;
+
+  console.log("Vertex Bot - Triangular Arbitrage\n");
   console.log("Wallet:", wallet.publicKey.toBase58());
   console.log("Trade size:", tradeSizeLamports / LAMPORTS_PER_SOL, "SOL");
   console.log("Paths:", TRIANGLE_PATHS.map((p) => p.name).join(", "));
-  console.log("Filters: re-quote before execute, max price impact, safety buffer");
+  console.log("Min profit:", requiredBps, "bps (" + (requiredBps / 100).toFixed(2) + "%)");
+  console.log("Re-quote before execute:", reQuoteBeforeExecute);
   console.log("\nScanning for opportunities...\n");
 
   let cycleCount = 0;

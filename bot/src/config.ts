@@ -18,18 +18,18 @@ export const config = {
     tradeSizePct: Number(process.env.TRADE_SIZE_PCT) || 0.005,
     tradeSizeMinSol: Number(process.env.TRADE_SIZE_MIN_SOL) || 0.01,
     tradeSizeMaxSol: Number(process.env.TRADE_SIZE_MAX_SOL) || 0.5,
-    // Min profit in basis points (70 = 0.7%) - relaxed for more opportunities
-    minProfitBps: Number(process.env.MIN_PROFIT_BPS) || 70,
-    // Extra buffer required before execution (15 = 0.15%)
-    safetyBufferBps: Number(process.env.SAFETY_BUFFER_BPS) || 15,
+    // Min profit in basis points (25 = 0.25%) - tuned for 0.15-0.2% daily target
+    minProfitBps: Number(process.env.MIN_PROFIT_BPS) || 25,
+    // Extra buffer for execution delay (8 = 0.08%) - lower = more trades, higher risk
+    safetyBufferBps: Number(process.env.SAFETY_BUFFER_BPS) || 8,
     // Max price impact per leg (reject if any leg exceeds this %)
-    maxPriceImpactPct: Number(process.env.MAX_PRICE_IMPACT_PCT) || 0.5,
-    // Slippage for arb (40 = 0.4%) - slightly relaxed for more fills
-    slippageBps: Number(process.env.ARB_SLIPPAGE_BPS) || 40,
-    // Re-quote right before execution; only execute if still profitable
+    maxPriceImpactPct: Number(process.env.MAX_PRICE_IMPACT_PCT) || 0.8,
+    // Slippage for arb (60 = 0.6%) - higher for more fills on volatile legs
+    slippageBps: Number(process.env.ARB_SLIPPAGE_BPS) || 60,
+    // Re-quote before execute (false = faster execution, more risk of slippage)
     reQuoteBeforeExecute: process.env.REQUOTE_BEFORE_EXECUTE !== "false",
-    // How often to check for opportunities (ms)
-    pollIntervalMs: Number(process.env.POLL_INTERVAL_MS) || 5000,
+    // How often to check for opportunities (ms) - 3s for more chances
+    pollIntervalMs: Number(process.env.POLL_INTERVAL_MS) || 3000,
     // Est. fee per tx in lamports (~0.00005 SOL)
     estimatedFeePerTx: 50_000,
   },
