@@ -20,7 +20,7 @@ export interface JupiterQuote {
   routePlan?: unknown[];
 }
 
-const JUPITER_TIMEOUT_MS = 15_000; // 15s - avoid hanging on slow/rate-limited API
+const JUPITER_TIMEOUT_MS = 25_000; // 25s - Jupiter can be slow from EU; avoid hanging
 
 /** Retry fetch on transient network/DNS errors. Timeout to avoid hanging. */
 async function fetchWithRetry(
@@ -47,7 +47,8 @@ async function fetchWithRetry(
         msg.includes("fetch failed") ||
         msg.includes("abort");
       if (!isRetryable || i === maxRetries - 1) throw e;
-      const delay = 2000 * (i + 1);
+      // Longer backoff on abort (timeout) - Jupiter may be slow or rate-limiting
+      const delay = msg.includes("abort") ? 4000 * (i + 1) : 2000 * (i + 1);
       console.warn(`Jupiter fetch failed (${msg}), retrying in ${delay}ms...`);
       await new Promise((r) => setTimeout(r, delay));
     }
