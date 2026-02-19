@@ -159,18 +159,25 @@ async function getTradeSizeLamports(connection: Connection): Promise<number> {
   }
 }
 
+const PATHS_PER_CYCLE = 2; // Check 2 paths per cycle to reduce Jupiter load; rotates through all 6
+
 /**
- * Scan all paths and return the best opportunity (if any).
+ * Scan a batch of paths and return the best opportunity (if any).
+ * pathBatch: 0 = paths 0,1; 1 = paths 2,3; 2 = paths 4,5. Rotates to avoid rate limits.
  */
 export async function checkAllTriangles(
-  connection: Connection
+  connection: Connection,
+  pathBatch: number = 0
 ): Promise<ArbitrageOpportunity | null> {
   const tradeSizeLamports = await getTradeSizeLamports(connection);
   let best: ArbitrageOpportunity | null = null;
 
-  for (let i = 0; i < TRIANGLE_PATHS.length; i++) {
-    if (i > 0) await new Promise((r) => setTimeout(r, 200)); // Space out Jupiter calls to avoid rate limits
-    const opp = await checkPath(TRIANGLE_PATHS[i], tradeSizeLamports);
+  const startIdx = (pathBatch % 3) * PATHS_PER_CYCLE;
+  const pathsToCheck = TRIANGLE_PATHS.slice(startIdx, startIdx + PATHS_PER_CYCLE);
+
+  for (let i = 0; i < pathsToCheck.length; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 200));
+    const opp = await checkPath(pathsToCheck[i], tradeSizeLamports);
     if (opp && (!best || opp.profitBps > best.profitBps)) {
       best = opp;
     }
@@ -290,7 +297,8 @@ export async function runArbitrageLoop(): Promise<void> {
   while (true) {
     cycleCount++;
     try {
-      const opp = await checkAllTriangles(connection);
+      const pathBatch = cycleCount % 3;
+      const opp = await checkAllTriangles(connection, pathBatch);
       if (opp) {
         console.log(`[${new Date().toISOString()}] Opportunity: ${opp.pathName}`);
         console.log(

@@ -20,7 +20,9 @@ export interface JupiterQuote {
   routePlan?: unknown[];
 }
 
-/** Retry fetch on transient network/DNS errors (ENOTFOUND, ECONNRESET, etc.) */
+const JUPITER_TIMEOUT_MS = 15_000; // 15s - avoid hanging on slow/rate-limited API
+
+/** Retry fetch on transient network/DNS errors. Timeout to avoid hanging. */
 async function fetchWithRetry(
   url: string,
   options?: RequestInit,
@@ -28,17 +30,22 @@ async function fetchWithRetry(
 ): Promise<Response> {
   let lastErr: unknown;
   for (let i = 0; i < maxRetries; i++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), JUPITER_TIMEOUT_MS);
     try {
-      const res = await fetch(url, options);
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timeoutId);
       return res;
     } catch (e) {
+      clearTimeout(timeoutId);
       lastErr = e;
       const msg = String((e as Error).message ?? e);
       const isRetryable =
         msg.includes("ENOTFOUND") ||
         msg.includes("ECONNRESET") ||
         msg.includes("ETIMEDOUT") ||
-        msg.includes("fetch failed");
+        msg.includes("fetch failed") ||
+        msg.includes("abort");
       if (!isRetryable || i === maxRetries - 1) throw e;
       const delay = 2000 * (i + 1);
       console.warn(`Jupiter fetch failed (${msg}), retrying in ${delay}ms...`);
