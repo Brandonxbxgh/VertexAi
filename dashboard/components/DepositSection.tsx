@@ -32,6 +32,10 @@ export function DepositSection() {
         </Link>{" "}
         to this address. Deposits are credited within ~60 seconds.
       </p>
+      <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
+        Use a non-custodial wallet (Phantom, Solflare, etc.). Exchanges like Coinbase use shared
+        addresses and cannot be attributed correctly.
+      </p>
 
       <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-start">
         <div className="flex-shrink-0 rounded-lg border border-zinc-700 bg-white p-2">

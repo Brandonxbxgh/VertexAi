@@ -174,8 +174,8 @@ export function WalletManagement() {
         <div>
           <h3 className="text-sm font-medium text-zinc-400">Deposit wallets</h3>
           <p className="mt-1 text-xs text-zinc-500">
-            Add wallets you will deposit from (Phantom, Solflare, etc.). Each wallet can only be
-            linked to one account.
+            Only add wallets you control (Phantom, Solflare, etc.). Do not use exchange withdrawal
+            addresses. Each wallet can only be linked to one account.
           </p>
           <div className="mt-3 flex gap-2">
             <input
