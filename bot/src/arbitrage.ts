@@ -168,8 +168,9 @@ export async function checkAllTriangles(
   const tradeSizeLamports = await getTradeSizeLamports(connection);
   let best: ArbitrageOpportunity | null = null;
 
-  for (const path of TRIANGLE_PATHS) {
-    const opp = await checkPath(path, tradeSizeLamports);
+  for (let i = 0; i < TRIANGLE_PATHS.length; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 200)); // Space out Jupiter calls to avoid rate limits
+    const opp = await checkPath(TRIANGLE_PATHS[i], tradeSizeLamports);
     if (opp && (!best || opp.profitBps > best.profitBps)) {
       best = opp;
     }

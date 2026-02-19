@@ -41,6 +41,7 @@ function StatCard({
 export function PoolStatsTab() {
   const [stats, setStats] = useState<ProfitStats | null>(null);
   const [poolTotal, setPoolTotal] = useState<number | null>(null);
+  const [actualBalance, setActualBalance] = useState<number | null>(null);
   const [tradeCounts, setTradeCounts] = useState({ today: 0, week: 0, total: 0 });
   const [lastActivity, setLastActivity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,19 +59,32 @@ export function PoolStatsTab() {
       weekStart.setDate(diff);
       weekStart.setHours(0, 0, 0, 0);
 
-      const [{ data: balanceData }, { data: profitData }, todayRes, weekRes, totalRes, lastRes] =
-        await Promise.all([
-          c.rpc("get_my_balance"),
-          c.rpc("get_profit_stats"),
-          c.from("trades").select("*", { count: "exact", head: true }).gte("created_at", todayStart.toISOString()).eq("status", "success"),
-          c.from("trades").select("*", { count: "exact", head: true }).gte("created_at", weekStart.toISOString()).eq("status", "success"),
-          c.from("trades").select("*", { count: "exact", head: true }).eq("status", "success"),
-          c.from("activity_log").select("created_at").order("created_at", { ascending: false }).limit(1).single(),
-        ]);
+      const [
+        { data: balanceData },
+        { data: profitData },
+        todayRes,
+        weekRes,
+        totalRes,
+        lastRes,
+        balanceRes,
+      ] = await Promise.all([
+        c.rpc("get_my_balance"),
+        c.rpc("get_profit_stats"),
+        c.from("trades").select("*", { count: "exact", head: true }).gte("created_at", todayStart.toISOString()).eq("status", "success"),
+        c.from("trades").select("*", { count: "exact", head: true }).gte("created_at", weekStart.toISOString()).eq("status", "success"),
+        c.from("trades").select("*", { count: "exact", head: true }).eq("status", "success"),
+        c.from("activity_log").select("created_at").order("created_at", { ascending: false }).limit(1).single(),
+        fetch("/api/pool-balance").then((r) => r.json()).catch(() => ({})),
+      ]);
 
       const balanceResult = balanceData as { ok?: boolean; pool_total?: number };
       if (balanceResult?.ok && balanceResult.pool_total !== undefined) {
         setPoolTotal(Number(balanceResult.pool_total));
+      }
+
+      const apiBalance = balanceRes as { sol?: number };
+      if (typeof apiBalance?.sol === "number") {
+        setActualBalance(apiBalance.sol);
       }
 
       const profitResult = profitData as { ok?: boolean; pool?: ProfitStats["pool"] };
@@ -106,13 +120,23 @@ export function PoolStatsTab() {
     <div className="space-y-8">
       <div>
         <h2 className="mb-3 text-sm font-medium text-zinc-500">Total pool capital</h2>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <p className="text-3xl font-semibold text-emerald-400">
-            {poolTotal != null ? formatSol(poolTotal) : "—"}
-          </p>
-          <p className="mt-1 text-xs text-zinc-600">
-            Attributed deposits (determines profit share)
-          </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+            <p className="text-3xl font-semibold text-emerald-400">
+              {actualBalance != null ? formatSol(actualBalance) : "—"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-600">
+              On-chain balance (actual SOL in pool wallet)
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+            <p className="text-3xl font-semibold text-zinc-300">
+              {poolTotal != null ? formatSol(poolTotal) : "—"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-600">
+              Attributed deposits (determines profit share)
+            </p>
+          </div>
         </div>
       </div>
 
