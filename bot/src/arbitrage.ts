@@ -103,11 +103,13 @@ async function checkPath(
   const q1 = await getQuote(path.legs[0][0], path.legs[0][1], inputStr, slippageBps);
   if (!q1) return null;
   if (Math.abs(Number(q1.priceImpactPct)) > maxPriceImpactPct) return null;
+  await new Promise((r) => setTimeout(r, 300)); // Space out Jupiter calls
 
   // Leg 2
   const q2 = await getQuote(path.legs[1][0], path.legs[1][1], q1.outAmount, slippageBps);
   if (!q2) return null;
   if (Math.abs(Number(q2.priceImpactPct)) > maxPriceImpactPct) return null;
+  await new Promise((r) => setTimeout(r, 300));
 
   // Leg 3
   const q3 = await getQuote(path.legs[2][0], path.legs[2][1], q2.outAmount, slippageBps);
@@ -327,7 +329,7 @@ export async function runArbitrageLoop(): Promise<void> {
           profitLamports: fresh.profitLamports,
         });
         console.log("");
-      } else if (cycleCount % 12 === 0) {
+      } else if (cycleCount % 6 === 0) {
         console.log(`[${new Date().toISOString()}] No opportunity (cycle ${cycleCount})`);
         await logActivity("heartbeat", `Scan cycle ${cycleCount} - no opportunity`);
       }

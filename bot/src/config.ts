@@ -37,8 +37,8 @@ export const config = {
     slippageBps: Number(process.env.ARB_SLIPPAGE_BPS) || 60,
     // Re-quote before execute (false = faster execution, more risk of slippage)
     reQuoteBeforeExecute: process.env.REQUOTE_BEFORE_EXECUTE !== "false",
-    // How often to check for opportunities (ms) - 3s for more chances
-    pollIntervalMs: Number(process.env.POLL_INTERVAL_MS) || 3000,
+    // How often to check for opportunities (ms) - 6s keeps under Jupiter 60 req/min
+    pollIntervalMs: Number(process.env.POLL_INTERVAL_MS) || 6000,
     // Est. fee per tx in lamports (~0.00005 SOL)
     estimatedFeePerTx: 50_000,
   },
