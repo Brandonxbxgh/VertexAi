@@ -62,9 +62,9 @@ export function Sidebar({ user }: { user: User }) {
           <p className="truncate text-sm text-zinc-300">{user.email}</p>
           <button
             onClick={handleSignOut}
-            className="mt-1 text-xs text-zinc-500 hover:text-red-400"
+            className="mt-2 w-full rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-300 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
           >
-            Sign out
+            Log out
           </button>
         </div>
       </div>
