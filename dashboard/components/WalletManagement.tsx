@@ -173,7 +173,7 @@ export function WalletManagement() {
       <div className="mt-6 space-y-6">
         <div>
           <h3 className="text-sm font-medium text-zinc-400">Deposit wallets</h3>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200/90">
             Only add wallets you control (Phantom, Solflare, etc.). Do not use exchange withdrawal
             addresses. Each wallet can only be linked to one account.
           </p>
