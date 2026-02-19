@@ -1,4 +1,5 @@
 import { BalanceCard } from "@/components/BalanceCard";
+import { DepositSection } from "@/components/DepositSection";
 import { LiveActivity } from "@/components/LiveActivity";
 import { Overview } from "@/components/Overview";
 import { RecentTrades } from "@/components/RecentTrades";
@@ -12,6 +13,9 @@ export default function DashboardPage() {
       </header>
       <div className="mx-auto max-w-6xl px-8 py-8">
         <BalanceCard />
+        <div className="mt-8">
+          <DepositSection />
+        </div>
         <div className="mt-8">
           <Overview />
         </div>
